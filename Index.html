@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floot NG</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+:root{
+  --floot:#8B3DFF;
+  --floot-light:#C77DFF;
+  --bg:#0B0B10;
+  --card:#16101F;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:var(--bg);
+  color:#fff;
+}
+
+.container{ padding:16px; }
+
+/* Tabs */
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px;
+}
+.tab{
+  flex:1;
+  padding:12px;
+  border-radius:14px;
+  background:#1A1329;
+  text-align:center;
+  font-weight:500;
+  cursor:pointer;
+}
+.tab.active{ background:var(--floot); }
+
+/* ===== Cardtonic-style Slider ===== */
+.ads-slider-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 10px 0;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ad-slide-card {
+  flex: 0 0 80%;
+  scroll-snap-align: start;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+}
+
+.ad-slide-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.ad-text {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  color: #fff;
+  font-weight: 600;
+  text-shadow: 2px 4px 8px rgba(0,0,0,0.7);
+}
+
+.ad-text span {
+  display: block;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Cards */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:20px;
+}
+.card{
+  background:var(--card);
+  border-radius:20px;
+  padding:18px;
+  text-align:center;
+  cursor:pointer;
+}
+.card i{
+  font-size:34px;
+  color:var(--floot-light);
+  margin-bottom:10px;
+}
+
+/* Screens */
+.hidden{display:none}
+
+.fullscreen{
+  position:fixed;
+  inset:0;
+  z-index:5000;
+}
+
+/* Map */
+#map{width:100%;height:100%}
+
+/* Back */
+.back{
+  position:absolute;
+  top:15px;
+  left:15px;
+  background:rgba(22,16,31,0.9);
+  padding:8px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  z-index:6000;
+}
+
+/* City buttons */
+.ride-overlay{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  z-index:6000;
+}
+.city-btn{
+  background:rgba(22,16,31,0.9);
+  padding:15px 24px;
+  border-radius:18px;
+  margin-bottom:12px;
+  min-width:180px;
+  text-align:center;
+  cursor:pointer;
+}
+
+/* Ginja */
+#ginjaScreen{
+  background:
+    linear-gradient(rgba(0,0,0,0.75),rgba(0,0,0,0.75)),
+    url('https://i.postimg.cc/BncY3kgd/AQOrq-EOBJTA6jv-Zwuo-Xt-L7VFTWMMwy6H9Xab-Fkkghjxy9Fm81d-KU3k-GAZje2t-S4MI4DUMEsu1YJMcq-Hoa-Sg-ZLFMz.jpg');
+  background-size:cover;
+  background-position:center;
+}
+
+.ginja-box{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+.ginja-btn{
+  background:var(--floot);
+  padding:16px 26px;
+  border-radius:20px;
+  text-align:center;
+  font-weight:600;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('basics')">Basics</div>
+    <div class="tab" onclick="showTab('opportunities')">Opportunities</div>
+  </div>
+
+  <!-- Cardtonic-style Slider -->
+  <div class="ads-slider-carousel">
+
+    <div class="ad-slide-card">
+      <img src="https://i.postimg.cc/XqVKQzwm/Orange-Education-Instagram-Post-20240422-091741-0000.png" alt="Floot Commute">
+      <div class="ad-text">
+        Floot Commute
+        <span>Parcel delivery via public transit</span>
+      </div>
+    </div>
+
+    <div class="ad-slide-card">
+      <img src="https://i.postimg.cc/MpxcRQmC/Orange-Professional-Course-Instagram-Post-20250711-094658-0000.png" alt="Floot Ride">
+      <div class="ad-text">
+        Floot Ride
+        <span>Peer-to-peer car ride</span>
+      </div>
+    </div>
+
+    <div class="ad-slide-card">
+      <img src="https://i.postimg.cc/0jbYTJ4R/Virtual-Assistant-Hiring-Job-Post-20231231-233156-0000.png" alt="Floot Bike">
+      <div class="ad-text">
+        Floot Bike
+        <span>Peer-to-peer bike ride in rural areas</span>
+      </div>
+    </div>
+
+    <div class="ad-slide-card">
+      <img src="https://images.unsplash.com/photo-1521631608357-94ec4850d169" alt="Floot Shuttle">
+      <div class="ad-text">
+        Floot Shuttle
+        <span>Shared buses and shuttles</span>
+      </div>
+    </div>
+
+    <div class="ad-slide-card">
+      <img src="https://i.postimg.cc/brzMkLdS/Blue-and-Purple-Mobile-Phone-Safety-Culture-Poster-20240625-084907-0000.png" alt="Floot VTU">
+      <div class="ad-text">
+        Floot VTU
+        <span>Data, airtime, bills & more</span>
+      </div>
+    </div>
+
+    <div class="ad-slide-card">
+      <img src="https://i.postimg.cc/BncY3kgd/AQOrq-EOBJTA6jv-Zwuo-Xt-L7VFTWMMwy6H9Xab-Fkkghjxy9Fm81d-KU3k-GAZje2t-S4MI4DUMEsu1YJMcq-Hoa-Sg-ZLFMz.jpg" alt="Floot Ginja">
+      <div class="ad-text">
+        Floot Ginja
+        <span>Become a successful entrepreneur at zero risk</span>
+      </div>
+    </div>
+
+    <div class="ad-slide-card">
+      <div class="ad-text">
+        Contact Us
+        <span>
+          <a href="mailto:flootinitiative@gmail.com" style="color:#fff;text-decoration:underline;">Email</a> |
+          <a href="https://wa.me/2347017367586" target="_blank" style="color:#fff;text-decoration:underline;">WhatsApp</a>
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Basics -->
+  <div id="basics" class="grid">
+    <div class="card" onclick="openRide()">
+      <i class="fa-solid fa-car"></i>
+      <div>Floot Ride & Logistics</div>
+    </div>
+
+    <div class="card" onclick="openVTU()">
+      <i class="fa-solid fa-bolt"></i>
+      <div>VTU (Airtime & Data)</div>
+    </div>
+
+    <div class="card" onclick="openStore()">
+      <i class="fa-solid fa-store"></i>
+      <div>Floot Store</div>
+    </div>
+  </div>
+
+  <!-- Opportunities -->
+  <div id="opportunities" class="grid hidden" style="margin-top:20px;">
+    <div class="card" onclick="openGinja()">
+      <i class="fa-solid fa-handshake"></i>
+      <div>Floot-Ginja</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Ride Screen -->
+<div id="rideScreen" class="fullscreen hidden">
+  <div id="map"></div>
+  <div class="back" onclick="closeRide()">← Back</div>
+
+  <div class="ride-overlay">
+    <div class="city-btn" onclick="openCity('lagos')">Lagos</div>
+    <div class="city-btn" onclick="openCity('ijebu')">Ijebu-Ode</div>
+    <div class="city-btn" onclick="openCity('onitsha')">Onitsha</div>
+  </div>
+</div>
+
+<!-- Ginja Screen -->
+<div id="ginjaScreen" class="fullscreen hidden">
+  <div class="back" onclick="closeGinja()">← Back</div>
+
+  <div class="ginja-box">
+    <div class="ginja-btn" onclick="openLink('https://affiliates.ginjabet.com/visit/?bta=35439&brand=ginjabetaffiliates')">Sign Up</div>
+    <div class="ginja-btn" onclick="openLink('https://affiliates.ginjabet.com/login/')">Login</div>
+    <div class="ginja-btn" onclick="openLink('https://t.me/+yourcommunitylink')">Join Community</div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const CITY_LINKS={
+  lagos:"https://flootlagos.ondelight.app/",
+  ijebu:"https://floot-ijebu.ondelight.app/",
+  onitsha:"https://floot-onitsha.ondelight.app/"
+};
+
+let mapInstance;
+
+function openRide(){
+  document.getElementById("rideScreen").classList.remove("hidden");
+  setTimeout(()=>{
+    mapInstance=L.map("map").setView([6.5244,3.3792],13);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(mapInstance);
+    mapInstance.locate({setView:true,maxZoom:15});
+    mapInstance.on("locationfound",e=>{
+      L.marker(e.latlng).addTo(mapInstance).bindPopup("You are here").openPopup();
+    });
+  },200);
+}
+
+function closeRide(){
+  document.getElementById("rideScreen").classList.add("hidden");
+  if(mapInstance){mapInstance.remove();mapInstance=null;}
+}
+
+function openCity(city){
+  window.open(CITY_LINKS[city],"_blank");
+}
+
+function openVTU(){
+  window.open("https://sabuss.com/flootng5?login","_blank");
+}
+
+function openStore(){
+  window.open("https://paystack.shop/flootstore-ng","_blank");
+}
+
+function openGinja(){
+  document.getElementById("ginjaScreen").classList.remove("hidden");
+}
+
+function closeGinja(){
+  document.getElementById("ginjaScreen").classList.add("hidden");
+}
+
+function openLink(url){
+  window.open(url,"_blank");
+}
+
+function showTab(tab){
+  const basics=document.getElementById("basics");
+  const opportunities=document.getElementById("opportunities");
+  const tabElems=document.querySelectorAll(".tab");
+
+  if(tab==="basics"){
+    basics.classList.remove("hidden");
+    opportunities.classList.add("hidden");
+    tabElems[0].classList.add("active");
+    tabElems[1].classList.remove("active");
+  } else {
+    basics.classList.add("hidden");
+    opportunities.classList.remove("hidden");
+    tabElems[0].classList.remove("active");
+    tabElems[1].classList.add("active");
+  }
+}
+</script>
+
+</body>
+</html>
